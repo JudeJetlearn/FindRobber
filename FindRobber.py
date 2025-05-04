@@ -13,7 +13,12 @@ pygame.display.set_caption(TITLE)
 
 bg = pygame.image.load("vault.png")
 bg = pygame.transform.scale(bg, (WIDTH,HEIGHT))
-screen.blit(bg,(0,0))
+
+score = 0
+
+def draw_score(text,font,text_col,x,y):
+    scoretext = font.render(text,True,text_col)
+    screen.blit(scoretext,(x,y))
 
 class Police(pygame.sprite.Sprite):
     def __init__(self):
@@ -24,10 +29,8 @@ class Police(pygame.sprite.Sprite):
         
     def update(self,pressed_keys):
         if pressed_keys[pygame.K_UP]:
-            #self.rect.move_ip(0, -5)
             self.rect.y = (self.rect.y - 5)
         if pressed_keys[pygame.K_DOWN]:
-            #self.rect.move_ip(0, 5)
             self.rect.y = (self.rect.y + 5)
         if pressed_keys[pygame.K_LEFT]:
             self.rect.move_ip(-5, 0)
@@ -36,19 +39,36 @@ class Police(pygame.sprite.Sprite):
         
         if self.rect.left < 0:
             self.rect.left = 0
-        elif self.rect.right < HEIGHT:
+        elif self.rect.right > WIDTH:
             self.rect.right = WIDTH
         if self.rect.top <= 0:
             self.rect.top = 0
-        elif self.rect.bottom < HEIGHT:
-            self.rect.bottom = WIDTH
+        elif self.rect.bottom > HEIGHT:
+            self.rect.bottom = HEIGHT
         
-sprites = pygame.sprite.Group()
+police_group = pygame.sprite.Group()
+        
+class Robber(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.image.load("robber.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image,(70,100))
+        self.rect = self.image.get_rect()      
+  
+        self.rect.y = random.randint(0,700)        
+        self.rect.x = random.randint(0,900)   
+        
+        
+robber_group = pygame.sprite.Group()    
         
 run = True
 
 police = Police() 
-sprites.add(police) 
+police_group.add(police)
+Rob = Robber() 
+robber_group.add(Rob)
+      
+font =  pygame.font.SysFont("Arial",50)     
         
 while run:
     pygame.display.update()
@@ -56,11 +76,20 @@ while run:
     for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-                
-    sprites.draw(screen)             
+          
+    screen.blit(bg,(0,0))            
+    police_group.draw(screen)  
+    robber_group.draw(screen)           
     pressed_keys = pygame.key.get_pressed()
-    sprites.update(pressed_keys)
-            
+    police_group.update(pressed_keys)
+    
+    draw_score(str(score),font,"white",WIDTH//2,100)
+    
+    if pygame.sprite.groupcollide(police_group,robber_group,False,False):
+        score = score + 1
+        Rob.rect.y = random.randint(0,700)        
+        Rob.rect.x = random.randint(0,900)
+           
     pygame.display.update()
 
 pygame.quit()
